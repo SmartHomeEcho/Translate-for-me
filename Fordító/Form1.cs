@@ -76,9 +76,12 @@ namespace Fordító
         }
 
         private void AC_Click(object sender, EventArgs e)
-        {
+        {   //KérésSzolgáltatás fügvény meghívása, API-ra csatlakozás kérés feldolgozása
             var Valasz = KeresSzolgaltatas(string.Format(AlkalmazasCache.LehetsegesNyelvek, AlkalmazasCache.API, FelismertNyelvLabel.Text));
+            //Valasz szótárba mentése, convertálása.
             var Szotar = JsonConvert.DeserializeObject<IDictionary>(Valasz.Content);
+            //Végig megyünk a szótár elemein és ahol langs van annak elemeit kiígyűjtöm egy Nyelvek listába.
+            //Az elkerülve, hogy ha valaki újra nyomja a gombot duplán betöltsem ugyanazt, a NyelvValaszto ComboBox tartalmát törlöm.
             foreach (DictionaryEntry entry in Szotar)
             {
                 if (entry.Key.Equals("langs"))
@@ -86,6 +89,7 @@ namespace Fordító
                     var LehetsegesKonvertalas = (JObject)entry.Value;
                     NyelvekLista = new List<string>();
                     NyelvValaszto.Items.Clear();
+                    //
                     foreach (var Lang in LehetsegesKonvertalas)
                     {
                         if (!Lang.Equals(FelismertNyelvLabel.Text))
@@ -101,12 +105,13 @@ namespace Fordító
        
 
         private void Fordítás_Gomb_Click(object sender, EventArgs e)
-        {
+        {   //Ez már ismert
             var Valasz = KeresSzolgaltatas(string.Format(AlkalmazasCache.NyelvForditas, AlkalmazasCache.API, ForditandoTextBox.Text, NyelvekLista[NyelvValaszto.SelectedIndex] ));
             var Szotar = JsonConvert.DeserializeObject<IDictionary>(Valasz.Content);
             var StatuszKod = Szotar["code"].ToString();
             if (StatuszKod.Equals("200"))
             {
+                //Találat esetén összefűzöm a szótár szavait a lefordított szövegbe
                LeforditottSzoveg.Text= string.Join(",", Szotar["text"]);
             }
         }
@@ -118,6 +123,19 @@ namespace Fordító
                 "3. Ezután Lehetséges nyelvek feltöltése gombra kell kattintani, amely következtében az alatta lévő lenyíló listát feltölti\n" +
                 "4. Listábol válaszd ki a kívánt nyelvet, majd fordítás gomb!:).\n"
                 , "Információ (ha nem tudod használni kérdezz!)", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+        //Ez a Tálcára helyezéshez, le kell tenni egy notifyIcon-t is (hivatkozva alább Icon néven)
+        private void TalcaraHelyezes_Click(object sender, EventArgs e)
+        {
+            this.Hide();
+            Icon.Visible = true;
+        }
+        // NotifyIcon Events(Villám jel) Ujranagyítás propery-ben Icon és text beállítás szükséges.
+        private void Ujranagyitas(object sender, MouseEventArgs e)
+        {
+            Show();
+            this.WindowState = FormWindowState.Normal;
+            Icon.Visible = false;
         }
     }
 }
